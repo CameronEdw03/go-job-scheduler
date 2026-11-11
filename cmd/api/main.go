@@ -5,6 +5,7 @@ import (
 	"go-job-scheduler/internal/job"
 	"go-job-scheduler/internal/queue"
 	"go-job-scheduler/internal/worker"
+	"sync"
 )
 
 func main() {
@@ -16,13 +17,22 @@ func main() {
 	q.AddJob(job.NewJob("Generate Invoice", "invoice"))
 	q.AddJob(job.NewJob("Data Cleanup", "cleanup"))
 
+	var wg sync.WaitGroup
+
 	for i := 1; i <= 3; i++ {
-		w := worker.Worker{
-			ID:    1,
-			Queue: &q,
-		}
-		w.ProcessNextJob()
+		wg.Add(1)
+
+		go func(workerID int) {
+			defer wg.Done()
+
+			w := worker.Worker{
+				ID:    workerID,
+				Queue: &q,
+			}
+			w.ProcessNextJob()
+		}(i)
 	}
 
+	wg.Wait()
 	fmt.Println(newJob)
 }

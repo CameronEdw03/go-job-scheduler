@@ -17,3 +17,7 @@ func NewJob(id string, jobType string) Job {
 		CreatedAt: time.Now(),
 	}
 }
+
+func (j *Job) UpdateStatus(status string) {
+	j.Status = status
+}
