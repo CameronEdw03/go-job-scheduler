@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"fmt"
 	"go-job-scheduler/internal/queue"
 )
@@ -19,14 +20,20 @@ func (w *Worker) ProcessNextJob() {
 	nextJob.UpdateStatus("processing")
 	fmt.Println("Worker processing:", nextJob)
 
-	executeJob(nextJob.Type)
+	err := executeJob(nextJob.Type)
+
+	if err != nil {
+		nextJob.UpdateStatus("failed")
+		fmt.Println("Job failed:", err)
+		return
+	}
 
 	nextJob.UpdateStatus("Completed")
 	fmt.Println("Worker completed:", nextJob)
 
 }
 
-func executeJob(jobType string) {
+func executeJob(jobType string) error {
 	switch jobType {
 	case "database-backup":
 		fmt.Println("Running database backup")
@@ -41,6 +48,7 @@ func executeJob(jobType string) {
 		fmt.Println("Cleaning up data")
 
 	default:
-		fmt.Println("Unknown job type")
+		return errors.New("Unknown job type")
 	}
+	return nil
 }
